@@ -1,2 +1,3 @@
-# SSW555tm042022Spring
-Team 4 repository 
+# GEDCOM Project
+*Team 4 SSW-555 Spring 2022*
+
