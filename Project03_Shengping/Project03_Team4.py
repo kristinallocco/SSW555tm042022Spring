@@ -1,6 +1,7 @@
 from typing import List, Dict
 import time
 import prettytable
+from enum import Enum
 
 
 month_abbrev = {'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
@@ -75,12 +76,16 @@ class GEDReader:
     def post_process(self):
         # Post process the child and spouse variable of each individual
         for family in self.family_dic.values():
+            family.husband.family_list.append(family)
+            family.wife.family_list.append(family)
             if not family.is_divorced():
                 family.husband.spouse = family.wife
                 family.wife.spouse = family.husband
             for c in family.child:
                 family.husband.child.append(c)
                 family.wife.child.append(c)
+        for individual in self.individual_dic.values():
+            individual.check_validity()
 
     def add_data(self):
         # When a new individual or family object is created, add the current data to the field dictionary
@@ -93,11 +98,12 @@ class GEDReader:
     def print_info(self):
         # print info with PrettyTable
         individual_pt: prettytable = prettytable.PrettyTable()
-        individual_pt.field_names = ['ID', 'Name', 'Gender', 'Birthday', 'Age', 'Alive', 'Death', 'Child', 'Spouse']
+        individual_pt.field_names = ['ID', 'Name', 'Gender', 'Birthday', 'Age', 'Alive',
+                                     'Death', 'Child', 'Spouse', 'Valid']
         for k, v in self.individual_dic.items():
             individual_pt.add_row([k, v.name, v.gender, str(v.birthday), v.get_age(),
                                    v.is_alive(), v.death_date, ','.join([c.id for c in v.child]),
-                                   v.spouse.id if v.spouse else None])
+                                   v.spouse.id if v.spouse else None, v.is_valid])
         print(individual_pt)
         family_pt: prettytable = prettytable.PrettyTable()
         family_pt.field_names = ['ID', 'Married', 'Divorced', 'Husband ID', 'Husband Name',
@@ -117,6 +123,8 @@ class Individual:
         self.death_date: Date or None = None
         self.child: List[Individual] = []
         self.spouse: Individual or None = None
+        self.is_valid: bool = True
+        self.family_list: List[Family] = []
 
     def get_age(self):
         bir = self.birthday
@@ -136,6 +144,23 @@ class Individual:
     def is_alive(self):
         return self.death_date is None
 
+    def get_earliest_marriage_date(self):
+        if len(self.family_list) == 0:
+            return None
+        return min([f.married_date for f in self.family_list])
+
+    def get_earliest_divorced_date(self):
+        if len(self.family_list) == 0:
+            return None
+        return min([f.divorced_date for f in self.family_list])
+
+    def check_validity(self):
+        # Check marriage date and birthday
+        marriage_date: Date = self.get_earliest_marriage_date()
+        if marriage_date and marriage_date < self.birthday:
+            self.is_valid = False
+            return
+
 
 class Family:
     def __init__(self, family_id):
@@ -151,10 +176,10 @@ class Family:
 
 
 class Date:
-    def __init__(self, year, month, day):
+    def __init__(self, year=1, month=1, day=1):
         self.year = year
-        self.month = month
-        self.day = day
+        self.month = month if month else 1
+        self.day = day if day else 1
 
     def __str__(self):
         if self.month is None and self.day is None:
@@ -164,7 +189,9 @@ class Date:
         else:
             return str(self.year) + '-' + str(self.month) + '-' + str(self.day)
 
-    def __cmp__(self, other):
+    def compare(self, other):
+        if not other:
+            return 1
         if self.year != other.year:
             return -1 if self.year < other.year else 1
         elif self.month != other.month:
@@ -173,9 +200,18 @@ class Date:
             return -1 if self.day < other.day else 1
         return 0
 
+    def __eq__(self, other):
+        return self.compare(other) == 0
+
+    def __lt__(self, other):
+        return self.compare(other) == -1
+
+    def __gt__(self, other):
+        return self.compare(other) == 1
+
 
 if __name__ == '__main__':
+    file_name = input('Please input the file name: ')
     reader = GEDReader()
-    reader.read_ged_data('project01_ShengpingXu.ged')
+    reader.read_ged_data(file_name)
     reader.print_info()
-
