@@ -9,16 +9,17 @@ month_abbrev = {'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
 
 
 class GEDReader:
-    def __init__(self):
+    def __init__(self, file_path):
+        self.file_path = file_path
         self.individual_dic: Dict[str, Individual] = {}
         self.family_dic: Dict[str, Family] = {}
         self.__cur_individual: Individual or None = None
         self.__cur_family: Family or None = None
 
-    def read_ged_data(self, file_path):
+    def read_ged_data(self):
         # Function that reads the content of the file
         try:
-            f = open(file_path)
+            f = open(self.file_path)
         except FileNotFoundError:
             print('FIle path is invalid!')
             return
@@ -212,6 +213,6 @@ class Date:
 
 if __name__ == '__main__':
     file_name = input('Please input the file name: ')
-    reader = GEDReader()
-    reader.read_ged_data(file_name)
+    reader = GEDReader(file_name)
+    reader.read_ged_data()
     reader.print_info()
