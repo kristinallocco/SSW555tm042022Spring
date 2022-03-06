@@ -15,8 +15,10 @@ class GEDReader:
         self.family_dic: Dict[str, Family] = {}
         self.__cur_individual: Individual or None = None
         self.__cur_family: Family or None = None
+        self.error_log: List[str] = []
+        self.__read_ged_data()
 
-    def read_ged_data(self):
+    def __read_ged_data(self):
         # Function that reads the content of the file
         try:
             f = open(self.file_path)
@@ -25,17 +27,17 @@ class GEDReader:
             return
 
         lines: List[str] = f.readlines()
-        self.process_line(lines)
+        self.__process_line(lines)
 
-    def process_line(self, lines: List[str]):
+    def __process_line(self, lines: List[str]):
         # Function that processes each line of the file according to its key word
         for i, line in enumerate(lines):
             words = line.split()
             if len(words) >= 3 and words[2] == 'INDI':
-                self.add_data()
+                self.__add_data()
                 self.__cur_individual = Individual(words[1].strip('@'))
             elif len(words) >= 3 and words[2] == 'FAM':
-                self.add_data()
+                self.__add_data()
                 self.__cur_family = Family(words[1].strip('@'))
             elif len(words) >= 2 and words[1] == 'DATE':
                 year = int(words[-1])
@@ -72,9 +74,9 @@ class GEDReader:
                 self.__cur_family.wife = self.individual_dic[words[2].strip('@')]
             elif len(words) >= 3 and words[1] == 'CHIL' and self.__cur_family:
                 self.__cur_family.child.append(self.individual_dic[words[2].strip('@')])
-        self.post_process()
+        self.__post_process()
 
-    def post_process(self):
+    def __post_process(self):
         # Post process the child and spouse variable of each individual
         for family in self.family_dic.values():
             family.husband.family_list.append(family)
@@ -86,9 +88,9 @@ class GEDReader:
                 family.husband.child.append(c)
                 family.wife.child.append(c)
         for individual in self.individual_dic.values():
-            individual.check_validity()
+            individual.check_validity(self.error_log)
 
-    def add_data(self):
+    def __add_data(self):
         # When a new individual or family object is created, add the current data to the field dictionary
         if self.__cur_individual:
             self.individual_dic[self.__cur_individual.id] = self.__cur_individual
@@ -113,6 +115,27 @@ class GEDReader:
             family_pt.add_row([k, v.married_date, v.is_divorced(), v.husband.id, v.husband.name, v.wife.id, v.wife.name,
                                ','.join([c.id for c in v.child])])
         print(family_pt)
+        self.print_error_log()
+
+    def print_error_log(self):
+        for log in self.error_log:
+            print(log)
+
+    def get_name(self, individual_id: str):
+        individual: Individual = self.individual_dic[individual_id]
+        return individual.name
+
+    def get_age(self, individual_id: str):
+        individual: Individual = self.individual_dic[individual_id]
+        return individual.get_age()
+
+    def get_marriage_date(self, family_id: str):
+        family: Family = self.family_dic[family_id]
+        return str(family.married_date)
+
+    def get_divorced_date(self, family_id: str):
+        family: Family = self.family_dic[family_id]
+        return str(family.divorced_date)
 
 
 class Individual:
@@ -129,6 +152,8 @@ class Individual:
 
     def get_age(self):
         bir = self.birthday
+        if not bir:
+            return -1
         if self.is_alive():
             t = time.localtime()
             age = t.tm_year - bir.year
@@ -155,11 +180,13 @@ class Individual:
             return None
         return min([f.divorced_date for f in self.family_list])
 
-    def check_validity(self):
+    def check_validity(self, error_log: List[str]):
         # Check marriage date and birthday
         marriage_date: Date = self.get_earliest_marriage_date()
         if marriage_date and marriage_date < self.birthday:
             self.is_valid = False
+            error_msg = 'ERROR: The marriage date of {name} is earlier than his/her birthday!'
+            error_log.append(error_msg.format(name=self.name))
             return
 
 
@@ -190,7 +217,7 @@ class Date:
         else:
             return str(self.year) + '-' + str(self.month) + '-' + str(self.day)
 
-    def compare(self, other):
+    def __compare(self, other):
         if not other:
             return 1
         if self.year != other.year:
@@ -202,17 +229,16 @@ class Date:
         return 0
 
     def __eq__(self, other):
-        return self.compare(other) == 0
+        return self.__compare(other) == 0
 
     def __lt__(self, other):
-        return self.compare(other) == -1
+        return self.__compare(other) == -1
 
     def __gt__(self, other):
-        return self.compare(other) == 1
+        return self.__compare(other) == 1
 
 
 if __name__ == '__main__':
     file_name = input('Please input the file name: ')
     reader = GEDReader(file_name)
-    reader.read_ged_data()
     reader.print_info()
