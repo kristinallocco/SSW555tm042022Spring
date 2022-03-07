@@ -34,3 +34,9 @@ class Date:
 
     def __gt__(self, other):
         return self.__compare(other) == 1
+
+    def __sub__(self, other):
+        res = self.year - other.year
+        if self.month < other.month or (self.month == other.month and self.day < other.day):
+            res += 1
+        return res

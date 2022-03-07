@@ -12,6 +12,8 @@ class Individual:
         self.death_date: Date or None = None
         self.child: List[Individual] = []
         self.spouse: Individual or None = None
+        self.father: Individual or None = None
+        self.mother: Individual or None = None
         self.is_valid: bool = True
         self.family_list: List[Family] = []
 
@@ -45,15 +47,6 @@ class Individual:
             return None
         return min([f.divorced_date for f in self.family_list])
 
-    def check_validity(self, error_log: List[str]):
-        # Check marriage date and birthday
-        marriage_date: Date = self.get_earliest_marriage_date()
-        if marriage_date and marriage_date < self.birthday:
-            self.is_valid = False
-            error_msg = 'ERROR: The marriage date of {name} is earlier than his/her birthday!'
-            error_log.append(error_msg.format(name=self.name))
-            return
-
 
 class Family:
     def __init__(self, family_id):
@@ -62,6 +55,7 @@ class Family:
         self.divorced_date: Date or None = None
         self.husband: Individual or None = None
         self.wife: Individual or None = None
+        self.is_valid = True
         self.child: List[Individual] = []
 
     def is_divorced(self):

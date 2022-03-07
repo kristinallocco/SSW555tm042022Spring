@@ -2,6 +2,7 @@ from typing import List, Dict
 import prettytable
 from Date import Date
 from IndividualNFamily import Individual, Family
+from ValidityChecker import ValidityChecker
 
 
 month_abbrev = {'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
@@ -16,6 +17,7 @@ class GEDReader:
         self.__cur_individual: Individual or None = None
         self.__cur_family: Family or None = None
         self.error_log: List[str] = []
+        self.__validity_checker = ValidityChecker()
         self.__read_ged_data()
 
     def __read_ged_data(self):
@@ -87,8 +89,13 @@ class GEDReader:
             for c in family.child:
                 family.husband.child.append(c)
                 family.wife.child.append(c)
+                c.father = family.husband
+                c.mother = family.wife
+
         for individual in self.individual_dic.values():
-            individual.check_validity(self.error_log)
+            self.__validity_checker.check_individual(individual)
+        for family in self.family_dic.values():
+            self.__validity_checker.check_family(family)
 
     def __add_data(self):
         # When a new individual or family object is created, add the current data to the field dictionary
@@ -110,15 +117,15 @@ class GEDReader:
         print(individual_pt)
         family_pt: prettytable = prettytable.PrettyTable()
         family_pt.field_names = ['ID', 'Married', 'Divorced', 'Husband ID', 'Husband Name',
-                                 'Wife ID', 'Wife Name', 'Children']
+                                 'Wife ID', 'Wife Name', 'Children', 'Valid']
         for k, v in self.family_dic.items():
             family_pt.add_row([k, v.married_date, v.is_divorced(), v.husband.id, v.husband.name, v.wife.id, v.wife.name,
-                               ','.join([c.id for c in v.child])])
+                               ','.join([c.id for c in v.child]), v.is_valid])
         print(family_pt)
         self.print_error_log()
 
     def print_error_log(self):
-        for log in self.error_log:
+        for log in self.__validity_checker.error_log:
             print(log)
 
     def get_name(self, individual_id: str):
