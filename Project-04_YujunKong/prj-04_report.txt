@@ -1,0 +1,3 @@
+Implemented User Story 023, 024
+Still coding on the former template
+Will refactor in 1 or 2 weeks
