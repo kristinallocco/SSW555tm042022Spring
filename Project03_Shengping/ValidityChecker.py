@@ -70,7 +70,7 @@ class ValidityChecker:
     def __check_marriage_validity(self, individual):
         family_list: List[Family] = individual.family_list
         for family in family_list:
-            if family.married_date - individual.birthday < 14:
+            if family.married_date and family.married_date - individual.birthday < 14:
                 self.__set_invalid_individual(individual, 'WARNING: The marriage date of {name} is younger than 14.')
                 break
 

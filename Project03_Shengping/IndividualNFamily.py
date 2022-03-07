@@ -40,12 +40,20 @@ class Individual:
     def get_earliest_marriage_date(self):
         if len(self.family_list) == 0:
             return None
-        return min([f.married_date for f in self.family_list])
+        date_list: List[Date] = []
+        for f in self.family_list:
+            if f.married_date:
+                date_list.append(f.married_date)
+        return min(date_list) if date_list else None
 
     def get_earliest_divorced_date(self):
         if len(self.family_list) == 0:
             return None
-        return min([f.divorced_date for f in self.family_list])
+        date_list: List[Date] = []
+        for f in self.family_list:
+            if f.divorced_date:
+                date_list.append(f.married_date)
+        return min(date_list) if date_list else None
 
 
 class Family:
