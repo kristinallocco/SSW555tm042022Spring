@@ -1,7 +1,7 @@
 from typing import List, Dict
-import time
 import prettytable
-from enum import Enum
+from Date import Date
+from IndividualNFamily import Individual, Family
 
 
 month_abbrev = {'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
@@ -136,106 +136,6 @@ class GEDReader:
     def get_divorced_date(self, family_id: str):
         family: Family = self.family_dic[family_id]
         return str(family.divorced_date)
-
-
-class Individual:
-    def __init__(self, individual_id):
-        self.id: str = individual_id
-        self.name: str = ''
-        self.gender: str = ''
-        self.birthday: Date or None = None
-        self.death_date: Date or None = None
-        self.child: List[Individual] = []
-        self.spouse: Individual or None = None
-        self.is_valid: bool = True
-        self.family_list: List[Family] = []
-
-    def get_age(self):
-        bir = self.birthday
-        if not bir:
-            return -1
-        if self.is_alive():
-            t = time.localtime()
-            age = t.tm_year - bir.year
-            if t.tm_mon < bir.month or (t.tm_mon == bir.month and t.tm_mday < bir.day):
-                age -= 1
-            return age
-        else:
-            death = self.death_date
-            age = death.year - bir.year
-            if death.month < bir.month or (death.month == bir.month and death.day < bir.day):
-                age -= 1
-            return age
-
-    def is_alive(self):
-        return self.death_date is None
-
-    def get_earliest_marriage_date(self):
-        if len(self.family_list) == 0:
-            return None
-        return min([f.married_date for f in self.family_list])
-
-    def get_earliest_divorced_date(self):
-        if len(self.family_list) == 0:
-            return None
-        return min([f.divorced_date for f in self.family_list])
-
-    def check_validity(self, error_log: List[str]):
-        # Check marriage date and birthday
-        marriage_date: Date = self.get_earliest_marriage_date()
-        if marriage_date and marriage_date < self.birthday:
-            self.is_valid = False
-            error_msg = 'ERROR: The marriage date of {name} is earlier than his/her birthday!'
-            error_log.append(error_msg.format(name=self.name))
-            return
-
-
-class Family:
-    def __init__(self, family_id):
-        self.id: str = family_id
-        self.married_date: Date or None = None
-        self.divorced_date: Date or None = None
-        self.husband: Individual or None = None
-        self.wife: Individual or None = None
-        self.child: List[Individual] = []
-
-    def is_divorced(self):
-        return self.divorced_date is not None
-
-
-class Date:
-    def __init__(self, year=1, month=1, day=1):
-        self.year = year
-        self.month = month if month else 1
-        self.day = day if day else 1
-
-    def __str__(self):
-        if self.month is None and self.day is None:
-            return str(self.year)
-        elif self.day is None:
-            return str(self.year) + '-' + str(self.month)
-        else:
-            return str(self.year) + '-' + str(self.month) + '-' + str(self.day)
-
-    def __compare(self, other):
-        if not other:
-            return 1
-        if self.year != other.year:
-            return -1 if self.year < other.year else 1
-        elif self.month != other.month:
-            return -1 if self.month < other.month else 1
-        elif self.day != other.day:
-            return -1 if self.day < other.day else 1
-        return 0
-
-    def __eq__(self, other):
-        return self.__compare(other) == 0
-
-    def __lt__(self, other):
-        return self.__compare(other) == -1
-
-    def __gt__(self, other):
-        return self.__compare(other) == 1
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 import unittest
-import Project03_Team4 as p2
+import GEDReader as p2
 from typing import List
 
 
