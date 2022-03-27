@@ -45,17 +45,17 @@ class GEDReader:
                 year = int(words[-1])
                 month = words[-2]
                 if month not in month_abbrev.keys():
-                    month = None
+                    month = 1
                 else:
                     month = month_abbrev[month]
                 day = words[-3]
                 if not month:
-                    day = None
+                    day = 1
                 else:
                     try:
                         day = int(day)
                     except ValueError:
-                        day = None
+                        day = 1
                 date: Date = Date(year, month, day)
                 last_line = lines[i-1].split()
                 if last_line[1] == 'BIRT' and self.__cur_individual:
@@ -87,8 +87,11 @@ class GEDReader:
                 family.husband.spouse = family.wife
                 family.wife.spouse = family.husband
             for c in family.child:
-                family.husband.child.append(c)
-                family.wife.child.append(c)
+                for s in family.child:
+                    if c != s:
+                        c.siblings.add(s)
+                family.husband.child.add(c)
+                family.wife.child.add(c)
                 c.father = family.husband
                 c.mother = family.wife
 
@@ -109,11 +112,11 @@ class GEDReader:
         # print info with PrettyTable
         individual_pt: prettytable = prettytable.PrettyTable()
         individual_pt.field_names = ['ID', 'Name', 'Gender', 'Birthday', 'Age', 'Alive',
-                                     'Death', 'Child', 'Spouse', 'Valid']
+                                     'Death', 'Child', 'Spouse', 'Siblings', 'Valid']
         for k, v in self.individual_dic.items():
             individual_pt.add_row([k, v.name, v.gender, str(v.birthday), v.get_age(),
                                    v.is_alive(), v.death_date, ','.join([c.id for c in v.child]),
-                                   v.spouse.id if v.spouse else None, v.is_valid])
+                                   v.spouse.id if v.spouse else None, ','.join([c.id for c in v.siblings]), v.is_valid])
         print(individual_pt)
         family_pt: prettytable = prettytable.PrettyTable()
         family_pt.field_names = ['ID', 'Married', 'Divorced', 'Husband ID', 'Husband Name',
@@ -127,6 +130,12 @@ class GEDReader:
     def print_error_log(self):
         for log in self.__validity_checker.error_log:
             print(log)
+
+    def get_individual(self, individual_id: str):
+        return self.individual_dic[individual_id]
+
+    def get_family(self, family_id: str):
+        return self.family_dic[family_id]
 
     def get_name(self, individual_id: str):
         individual: Individual = self.individual_dic[individual_id]

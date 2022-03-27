@@ -1,11 +1,14 @@
 from typing import List, Dict
+import datetime
 
 
 class Date:
     def __init__(self, year=1, month=1, day=1):
-        self.year = year
-        self.month = month if month else 1
-        self.day = day if day else 1
+        self.datetime = datetime.datetime(year, month, day)
+
+        self.year = self.datetime.year
+        self.month = self.datetime.month if self.datetime.month else 1
+        self.day = self.datetime.day if self.datetime.day else 1
 
     def __str__(self):
         if self.month is None and self.day is None:

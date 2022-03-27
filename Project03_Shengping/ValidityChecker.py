@@ -14,9 +14,14 @@ class ValidityChecker:
         self.__check_age_validity(individual)
         self.__check_birth_and_death_of_parents(individual)
         self.__check_marriage_validity(individual)
+        self.__check_bigamy(individual)
+        self.__check_parent_too_old(individual)
+        self.__check_siblings_space(individual)
+        self.__check_multi_birth(individual)
 
     def check_family(self, family: Family):
         self.__check_marriage_date_and_divorced_date(family)
+        self.__check_siblings_num(family)
 
     def __set_invalid_individual(self, individual: Individual, error_msg: str):
         individual.is_valid = False
@@ -67,15 +72,61 @@ class ValidityChecker:
             self.__set_invalid_individual(individual, 'ERROR: The birthday of {name} is'
                                                       ' later than the death date of his/her parent')
 
-    def __check_marriage_validity(self, individual):
+    def __check_marriage_validity(self, individual: Individual):
         family_list: List[Family] = individual.family_list
         for family in family_list:
             if family.married_date and family.married_date - individual.birthday < 14:
                 self.__set_invalid_individual(individual, 'WARNING: The marriage date of {name} is younger than 14.')
                 break
 
+    def __check_bigamy(self, individual: Individual):
+        family_list: List[Family] = individual.family_list
+        family_list.sort(key=lambda f: f.married_date)
+        for i in range(1, len(family_list)):
+            f1, f2 = family_list[i-1], family_list[i]
+            if (f2.married_date and f1.divorced_date and f2.married_date < f1.divorced_date) or not f1.is_divorced():
+                self.__set_invalid_individual(individual, 'WARNING: Bigamy happens in the data of {name}.')
+                break
+
+    def __check_parent_too_old(self, individual: Individual):
+        mother, father = individual.mother, individual.father
+        if not individual.birthday:
+            return
+        if mother and mother.birthday and mother.birthday - individual.birthday > 60:
+            self.__set_invalid_individual(individual, 'WARNING: Mother of {name} is too old.')
+        if father and father.birthday and father.birthday - individual.birthday > 80:
+            self.__set_invalid_individual(individual, 'WARNING: Father of {name} is too old.')
+
+    def __check_siblings_space(self, individual: Individual):
+        if not individual.birthday:
+            return
+        for s in individual.siblings:
+            if not s.birthday:
+                continue
+            diff = individual.birthday.datetime - s.birthday.datetime
+            if 1 < abs(diff.days) < 240:
+                self.__set_invalid_individual(individual, 'ERROR: Siblings space of {name} is incorrect.')
+                break
+
+    def __check_multi_birth(self, individual: Individual):
+        if not individual.birthday:
+            return
+        multi_birth_num = 0
+        for s in individual.siblings:
+            if not s.birthday:
+                continue
+            diff = individual.birthday.datetime - s.birthday.datetime
+            if abs(diff.days) <= 1:
+                multi_birth_num += 1
+        if multi_birth_num > 5:
+            self.__set_invalid_individual(individual, 'WARNING: 5 or more siblings are born in the data of {name}.')
+
     # -------------------------------------Family check functions----------------------------------------------------- #
 
     def __check_marriage_date_and_divorced_date(self, family: Family):
         if family.is_divorced() and family.married_date > family.divorced_date:
             self.__set_invalid_family(family, 'ERROR: The marriage date of {id} is later than their divorced date!')
+
+    def __check_siblings_num(self, family: Family):
+        if len(family.child) > 15:
+            self.__set_invalid_family(family, 'WARNING: The siblings number of {id} is more than 15!')

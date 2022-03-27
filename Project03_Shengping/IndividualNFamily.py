@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set, Optional
 from Date import Date
 import time
 
@@ -8,14 +8,15 @@ class Individual:
         self.id: str = individual_id
         self.name: str = ''
         self.gender: str = ''
-        self.birthday: Date or None = None
-        self.death_date: Date or None = None
-        self.child: List[Individual] = []
-        self.spouse: Individual or None = None
-        self.father: Individual or None = None
-        self.mother: Individual or None = None
+        self.birthday: Optional[Date] = None
+        self.death_date: Optional[Date] = None
+        self.child: Set[Individual] = set()
+        self.spouse: Optional[Individual] = None
+        self.father: Optional[Individual] = None
+        self.mother: Optional[Individual] = None
         self.is_valid: bool = True
         self.family_list: List[Family] = []
+        self.siblings: Set[Individual] = set()
 
     def get_age(self):
         bir = self.birthday
