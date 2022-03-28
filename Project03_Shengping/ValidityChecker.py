@@ -18,6 +18,10 @@ class ValidityChecker:
         self.__check_parent_too_old(individual)
         self.__check_siblings_space(individual)
         self.__check_multi_birth(individual)
+        self.__check_sibling_marriage(individual)
+        self.__check_no_marriage_to_descendants(individual)
+        #self.__check_correct_gender(individual)
+        #self.__check_males_carry_last_name(individual)
 
     def check_family(self, family: Family):
         self.__check_marriage_date_and_divorced_date(family)
@@ -120,6 +124,23 @@ class ValidityChecker:
                 multi_birth_num += 1
         if multi_birth_num > 5:
             self.__set_invalid_individual(individual, 'WARNING: 5 or more siblings are born in the data of {name}.')
+    
+    def __check_no_marriage_to_descendants(self, individual: Individual):
+        if individual.child == individual.spouse:
+            self.__set_invalid_individual(individual, 'WARNING: {id} is married to one of their parents!')
+
+    def __check_sibling_marriage(self, individual: Individual):
+        if individual.siblings == individual.spouse:
+            self.__set_invalid_individual(individual, 'WARNING: {id} is married to one of their siblings!')
+
+    #def __check_correct_gender(self, individual: Individual):
+        #if individual.mother.gender != 'Female':
+            #self.__set_invalid_individual(individual,"WARNING: {id} has the incorrect gender for their role!")
+
+    #def __check_males_carry_last_name(self, individual: Individual):
+        #gender, last_name = individual.gender, individual.name
+        #if gender == "Male":
+            #self.__set_invalid_individual(individual, "WARNING: {id}'s last name does not match that of their father's!")
 
     # -------------------------------------Family check functions----------------------------------------------------- #
 
@@ -130,3 +151,4 @@ class ValidityChecker:
     def __check_siblings_num(self, family: Family):
         if len(family.child) > 15:
             self.__set_invalid_family(family, 'WARNING: The siblings number of {id} is more than 15!')
+

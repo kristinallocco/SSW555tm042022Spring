@@ -5,7 +5,7 @@ from typing import List
 
 class GEDReaderTest(unittest.TestCase):
     def test_ged_reader(self):
-        reader: p2.GEDReader = p2.GEDReader('XJP.ged')
+        reader: p2.GEDReader = p2.GEDReader('XJP_buggyFail.ged')
         # General test case
         self.assertEqual(reader.get_name('I1'), 'Jinping /Xi/')
         # Test case that the label is valid
