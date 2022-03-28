@@ -86,6 +86,9 @@ class GEDReader:
             if not family.is_divorced():
                 family.husband.spouse = family.wife
                 family.wife.spouse = family.husband
+            else:
+                family.husband.past_spouse.add(family.wife)
+                family.wife.past_spouse.add(family.husband)
             for c in family.child:
                 for s in family.child:
                     if c != s:

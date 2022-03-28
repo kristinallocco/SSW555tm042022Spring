@@ -20,12 +20,12 @@ class ValidityChecker:
         self.__check_multi_birth(individual)
         self.__check_sibling_marriage(individual)
         self.__check_no_marriage_to_descendants(individual)
-        #self.__check_correct_gender(individual)
-        #self.__check_males_carry_last_name(individual)
 
     def check_family(self, family: Family):
         self.__check_marriage_date_and_divorced_date(family)
         self.__check_siblings_num(family)
+        self.__check_correct_gender(family)
+        self.__check_males_carry_last_name(family)
 
     def __set_invalid_individual(self, individual: Individual, error_msg: str):
         individual.is_valid = False
@@ -124,23 +124,32 @@ class ValidityChecker:
                 multi_birth_num += 1
         if multi_birth_num > 5:
             self.__set_invalid_individual(individual, 'WARNING: 5 or more siblings are born in the data of {name}.')
-    
+
     def __check_no_marriage_to_descendants(self, individual: Individual):
-        if individual.child == individual.spouse:
-            self.__set_invalid_individual(individual, 'WARNING: {id} is married to one of their parents!')
+        spouse = individual.spouse
+        if not spouse:
+            return
+        descendants = set()
+        queue = [d for d in individual.child]
+        while queue:
+            p: Individual = queue.pop()
+            descendants.add(p)
+            for c in p.child:
+                queue.insert(0, c)
+        if spouse in descendants:
+            self.__set_invalid_individual(individual, 'WARNING: {name} is married to one of his/her descendants!')
+            return
+        for s in individual.past_spouse:
+            if s in descendants:
+                self.__set_invalid_individual(individual, 'WARNING: {name} is married to one of his/her descendants!')
+                return
 
     def __check_sibling_marriage(self, individual: Individual):
-        if individual.siblings == individual.spouse:
-            self.__set_invalid_individual(individual, 'WARNING: {id} is married to one of their siblings!')
-
-    #def __check_correct_gender(self, individual: Individual):
-        #if individual.mother.gender != 'Female':
-            #self.__set_invalid_individual(individual,"WARNING: {id} has the incorrect gender for their role!")
-
-    #def __check_males_carry_last_name(self, individual: Individual):
-        #gender, last_name = individual.gender, individual.name
-        #if gender == "Male":
-            #self.__set_invalid_individual(individual, "WARNING: {id}'s last name does not match that of their father's!")
+        spouse = individual.spouse
+        if not spouse:
+            return
+        if spouse in individual.siblings:
+            self.__set_invalid_individual(individual, 'WARNING: {name} is married to one of their siblings!')
 
     # -------------------------------------Family check functions----------------------------------------------------- #
 
@@ -151,4 +160,18 @@ class ValidityChecker:
     def __check_siblings_num(self, family: Family):
         if len(family.child) > 15:
             self.__set_invalid_family(family, 'WARNING: The siblings number of {id} is more than 15!')
+
+    def __check_correct_gender(self, family: Family):
+        husband, wife = family.husband, family.wife
+        if husband and husband.gender != 'Male':
+            self.__set_invalid_family(family, 'WARNING: The husband of {id} is not a male!')
+
+    def __check_males_carry_last_name(self, family: Family):
+        husband = family.husband
+        if not husband:
+            return
+        family_name = family.husband.name.split()[1]
+        for c in family.child:
+            if c.gender == 'Male' and c.name.split()[1] != family_name:
+                self.__set_invalid_individual(c, 'WARNING: The last name of {name} is different from his/her father!')
 

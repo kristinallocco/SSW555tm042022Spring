@@ -12,6 +12,7 @@ class Individual:
         self.death_date: Optional[Date] = None
         self.child: Set[Individual] = set()
         self.spouse: Optional[Individual] = None
+        self.past_spouse: Set[Individual] = set()
         self.father: Optional[Individual] = None
         self.mother: Optional[Individual] = None
         self.is_valid: bool = True
@@ -60,10 +61,10 @@ class Individual:
 class Family:
     def __init__(self, family_id):
         self.id: str = family_id
-        self.married_date: Date or None = None
-        self.divorced_date: Date or None = None
-        self.husband: Individual or None = None
-        self.wife: Individual or None = None
+        self.married_date: Optional[Date] = None
+        self.divorced_date: Optional[Date] = None
+        self.husband: Optional[Individual] = None
+        self.wife: Optional[Individual] = None
         self.is_valid = True
         self.child: List[Individual] = []
 
