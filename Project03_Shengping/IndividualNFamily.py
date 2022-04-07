@@ -70,3 +70,8 @@ class Family:
 
     def is_divorced(self):
         return self.divorced_date is not None
+
+    def order_siblings_by_age(self):
+        if not self.child:
+            return
+        return [c.name for c in sorted(self.child, key=lambda child: child.get_age(), reverse=True)]
