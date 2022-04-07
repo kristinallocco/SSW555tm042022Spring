@@ -3,6 +3,7 @@ import prettytable
 from Date import Date
 from IndividualNFamily import Individual, Family
 from ValidityChecker import ValidityChecker
+from collections import defaultdict
 
 
 month_abbrev = {'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
@@ -71,15 +72,28 @@ class GEDReader:
             elif len(words) >= 3 and words[1] == 'SEX' and self.__cur_individual:
                 self.__cur_individual.gender = 'Male' if words[2] == 'M' else 'Female'
             elif len(words) >= 3 and words[1] == 'HUSB' and self.__cur_family:
-                self.__cur_family.husband = self.individual_dic[words[2].strip('@')]
+                key = words[2].strip('@')
+                if key not in self.individual_dic.keys():
+                    print('{key} is not in the individual records, this GED File cannot be processed.'.format(key=key))
+                    return
+                self.__cur_family.husband = self.individual_dic[key]
             elif len(words) >= 3 and words[1] == 'WIFE' and self.__cur_family:
-                self.__cur_family.wife = self.individual_dic[words[2].strip('@')]
+                key = words[2].strip('@')
+                if key not in self.individual_dic.keys():
+                    print('{key} is not in the individual records, this GED File cannot be processed.'.format(key=key))
+                    return
+                self.__cur_family.wife = self.individual_dic[key]
             elif len(words) >= 3 and words[1] == 'CHIL' and self.__cur_family:
-                self.__cur_family.child.append(self.individual_dic[words[2].strip('@')])
+                key = words[2].strip('@')
+                if key not in self.individual_dic.keys():
+                    print('{key} is not in the individual records, this GED File cannot be processed.'.format(key=key))
+                    return
+                self.__cur_family.child.append(self.individual_dic[key])
         self.__post_process()
 
     def __post_process(self):
         # Post process the child and spouse variable of each individual
+        self.__check_correspond_entries()
         for family in self.family_dic.values():
             family.husband.family_list.append(family)
             family.wife.family_list.append(family)
@@ -97,6 +111,7 @@ class GEDReader:
                 family.wife.child.add(c)
                 c.father = family.husband
                 c.mother = family.wife
+            # print(family.order_siblings_by_age())
 
         for individual in self.individual_dic.values():
             self.__validity_checker.check_individual(individual)
@@ -110,6 +125,29 @@ class GEDReader:
         if self.__cur_family:
             self.family_dic[self.__cur_family.id] = self.__cur_family
         self.__cur_family, self.__cur_individual = None, None
+
+    def __check_correspond_entries(self):
+        memo = defaultdict(bool)
+        for i in self.individual_dic.keys():
+            memo[i] = True
+        for k in self.family_dic.keys():
+            v = self.family_dic[k]
+            lis = list(v.child)
+            lis.append(v.wife)
+            lis.append(v.husband)
+            for i in lis:
+                if i.id not in memo.keys():
+                    i.is_valid = False
+                    self.__validity_checker.error_log.append('WARNING: The info of {id} is not '
+                                                             'shown in the individual records'.format(id=i.id))
+                else:
+                    memo[i.id] = False
+        for i in memo.keys():
+            flag = memo[i]
+            if flag:
+                self.individual_dic[i].is_valid = False
+                self.__validity_checker.error_log.append('WARNING: The info of {id} is not shown'
+                                                         ' in the family records'.format(id=i))
 
     def print_info(self):
         # print info with PrettyTable
