@@ -1,21 +1,31 @@
 import unittest
-import GEDReader as p2
+from GEDReader import GEDReader
 from typing import List
 
 
 class GEDReaderTest(unittest.TestCase):
-    def test_ged_reader(self):
-        reader: p2.GEDReader = p2.GEDReader('XJP_buggyFail.ged')
-        # General test case
-        self.assertEqual(reader.get_name('I1'), 'Jinping /Xi/')
-        # Test case that the label is valid
-        self.assertEqual(reader.get_name('I2'), 'Zhongxun /Xi/')
-        # Test case that the label is invalid
-        self.assertEqual(reader.get_age('I10'), 59)
-        # Test case of the special INDI label
-        self.assertEqual(reader.get_marriage_date('F1'), '1987-9-1')
-        # Test case that there are only 2 elements in the line
-        self.assertEqual(reader.get_divorced_date('F1'), 'None')
+    def test_us25(self):
+        # Unit Test for User Story 25
+        reader_us25: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS25.ged')
+        self.assertFalse(reader_us25.get_individual('I8').is_valid)
+
+    def test_us26(self):
+        # Unit Test for User Story 26
+        reader_us26: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS26.ged')
+        self.assertFalse(reader_us26.get_individual('I4').is_valid)
+        self.assertFalse(reader_us26.get_individual('I5').is_valid)
+
+    def test_us28(self):
+        # Unit Test for User Story 28
+        reader_us28: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS28.ged')
+        f = reader_us28.get_family('F3')
+        ordered_siblings = f.order_siblings_by_age()
+        self.assertEqual(ordered_siblings, ['Qiaoqiao /Xi/', 'Anan /Xi/', 'Jinping /Xi/', 'Yuanping /Xi/'])
+
+    def test_us08(self):
+        # Unit Test for User Story 08
+        reader_us08: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS08.ged')
+        self.assertFalse(reader_us08.get_individual('I1').is_valid)
 
 
 if __name__ == '__main__':

@@ -201,4 +201,3 @@ class ValidityChecker:
                     if indi.birthday == c.birthday:
                         self.set_invalid_individual(c, 'WARNING: There are multiple {name} with '
                                                        'the same birthday in a single family!')
-                        break
