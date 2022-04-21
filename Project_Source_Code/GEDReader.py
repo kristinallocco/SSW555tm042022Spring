@@ -237,6 +237,15 @@ class GEDReader:
                 res.append(individual)
         return res
 
+    #def list_spouse_age_gap_large(self):
+        res = []
+        for individual in self.individual_dic.values():
+            spouse = individual.spouse
+            if not spouse:
+                return
+            if spouse.get_age >= individual.get_age * 2:
+                res.append(individual)
+        return res
 
 if __name__ == '__main__':
     file_name = input('Please input the file name: ')
