@@ -213,6 +213,8 @@ class GEDReader:
                 res.add(d)
         return list(res)
 
+    #def list_multiple_births(self):
+        #multiple_births = self.list
 
 if __name__ == '__main__':
     file_name = input('Please input the file name: ')
