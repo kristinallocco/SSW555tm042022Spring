@@ -229,21 +229,16 @@ class GEDReader:
                 res.append(lis)
         return res
 
-    #def list_orphans(self):
-        memo = set()
+    def list_orphans(self):
         res = []
-        for family in self.family_dic.values():
-            if family in memo:
-                continue
-            memo.add(family)
-            lis = [family]
-            for c in family.child:
-                if c.father.death_date != None and c.mother.death_date != None and c.get_age <18:
-                    lis.append(c)
-                    memo.add(c)
-        res.append(lis)
+        for individual in self.individual_dic.values():
+            father, mother = individual.father, individual.mother
+            if father and not father.is_alive() and mother and not mother.is_alive() and individual.get_age() < 18:
+                res.append(individual)
+        return res
+
 
 if __name__ == '__main__':
     file_name = input('Please input the file name: ')
     reader = GEDReader(file_name)
-    print([[i.name for i in l] for l in reader.list_multiple_births()])
+    reader.print_info()

@@ -1,6 +1,5 @@
 import unittest
 from GEDReader import GEDReader
-from typing import List
 
 
 class GEDReaderTest(unittest.TestCase):
@@ -61,6 +60,12 @@ class GEDReaderTest(unittest.TestCase):
         reader_us32: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS32.ged')
         multibirths = reader_us32.list_multiple_births()
         self.assertEqual([[i.name for i in l] for l in multibirths], [['Jinping /Xi/', 'Yuanping /Xi/']])
+
+    def test_us33(self):
+        # Unit Test for User Story 33
+        reader_us33: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS33.ged')
+        orphans = reader_us33.list_orphans()
+        self.assertEqual([i.name for i in orphans], ['Mingze /Xi/'])
 
 
 if __name__ == '__main__':
