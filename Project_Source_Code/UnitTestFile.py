@@ -56,6 +56,12 @@ class GEDReaderTest(unittest.TestCase):
         i = reader_us41.get_individual('I1')
         self.assertEqual(str(i.birthday), '1953-1-1')
 
+    def test_us32(self):
+        # Unit Test for User Story 32
+        reader_us32: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS32.ged')
+        multibirths = reader_us32.list_multiple_births()
+        self.assertEqual([[i.name for i in l] for l in multibirths], [['Jinping /Xi/', 'Yuanping /Xi/']])
+
 
 if __name__ == '__main__':
     unittest.main(exit=False, verbosity=2)

@@ -21,8 +21,8 @@ class ValidityChecker:
         self.__check_multi_birth(individual)
         self.__check_sibling_marriage(individual)
         self.__check_no_marriage_to_descendants(individual)
-        #self.__check_marriage_before_death(individual)
-        #self.__check_divorce_before_death(individual)
+        self.__check_marriage_before_death(individual)
+        self.__check_divorced_before_death(individual)
 
     def check_family(self, family: Family):
         self.__check_marriage_date_and_divorced_date(family)
@@ -88,17 +88,21 @@ class ValidityChecker:
                 self.set_invalid_individual(individual, 'WARNING: The marriage date of {name} is younger than 14.')
                 break
     
-    #def __check_marriage_before_death(self, individual: Individual):
-       #marriage_date = individual.get_earliest_marriage_date()
-       #death_date = individual.death_date()
-        #if marriage_date and marriage_date > death_date:
-            #self.set_invalid_individual(individual, "WARNING: The marriage occured after {name} died.")
+    def __check_marriage_before_death(self, individual: Individual):
+        marriage_date = individual.get_earliest_marriage_date()
+        death_date = individual.death_date
+        if death_date is None:
+            return
+        if marriage_date and marriage_date > death_date:
+            self.set_invalid_individual(individual, "WARNING: The marriage occurred after {name} died.")
 
-    #def __check_divorced_before_death(self, individual: Individual):
-       #divorced_date = individual.get_earliest_divorced_date()
-       #death_date = individual.death_date()
-        #if divorced_date and divorced_date > death_date:
-            #self.set_invalid_individual(individual, "WARNING: The divorce occured after {name} died.")
+    def __check_divorced_before_death(self, individual: Individual):
+        divorced_date = individual.get_earliest_divorced_date()
+        death_date = individual.death_date
+        if death_date is None:
+            return
+        if divorced_date and divorced_date > death_date:
+            self.set_invalid_individual(individual, "WARNING: The divorce occurred after {name} died.")
 
     def __check_bigamy(self, individual: Individual):
         family_list: List[Family] = individual.family_list

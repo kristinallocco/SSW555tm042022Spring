@@ -213,10 +213,24 @@ class GEDReader:
                 res.add(d)
         return list(res)
 
-    #def list_multiple_births(self):
-        #multiple_births = self.list
+    def list_multiple_births(self):
+        memo = set()
+        res = []
+        for individual in self.individual_dic.values():
+            if individual in memo:
+                continue
+            memo.add(individual)
+            lis = [individual]
+            for s in individual.siblings:
+                if s.birthday.datetime == individual.birthday.datetime:
+                    lis.append(s)
+                    memo.add(s)
+            if len(lis) >= 2:
+                res.append(lis)
+        return res
+
 
 if __name__ == '__main__':
     file_name = input('Please input the file name: ')
     reader = GEDReader(file_name)
-    reader.print_info()
+    print([[i.name for i in l] for l in reader.list_multiple_births()])
