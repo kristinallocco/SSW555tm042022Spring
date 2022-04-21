@@ -1,3 +1,5 @@
+import time
+from datetime import datetime
 from typing import List, Dict
 import prettytable
 from Date import Date
@@ -49,7 +51,7 @@ class GEDReader:
                     month = 1
                 else:
                     month = month_abbrev[month]
-                day = words[-3]
+                day = words[-3] if len(words) > 4 else 1
                 if not month:
                     day = 1
                 else:
@@ -178,21 +180,38 @@ class GEDReader:
     def get_family(self, family_id: str):
         return self.family_dic[family_id]
 
-    def get_name(self, individual_id: str):
-        individual: Individual = self.individual_dic[individual_id]
-        return individual.name
+    def list_recent_birth(self):
+        t = time.localtime()
+        cur_date = datetime(t.tm_year, t.tm_mon, t.tm_mday)
+        res = []
+        for individual in self.individual_dic.values():
+            birthday = individual.birthday.datetime
+            interval = cur_date - birthday
+            if interval.days <= 30:
+                res.append(individual)
+        return res
 
-    def get_age(self, individual_id: str):
-        individual: Individual = self.individual_dic[individual_id]
-        return individual.get_age()
+    def list_recent_death(self):
+        t = time.localtime()
+        cur_date = datetime(t.tm_year, t.tm_mon, t.tm_mday)
+        res = []
+        for individual in self.individual_dic.values():
+            death_date = individual.death_date
+            if not death_date:
+                continue
+            interval = cur_date - death_date.datetime
+            if interval.days <= 30:
+                res.append(individual)
+        return res
 
-    def get_marriage_date(self, family_id: str):
-        family: Family = self.family_dic[family_id]
-        return str(family.married_date)
-
-    def get_divorced_date(self, family_id: str):
-        family: Family = self.family_dic[family_id]
-        return str(family.divorced_date)
+    def list_recent_survivors(self):
+        recent_death = self.list_recent_death()
+        res = set()
+        for i in recent_death:
+            res.add(i.spouse)
+            for d in i.get_all_descendants():
+                res.add(d)
+        return list(res)
 
 
 if __name__ == '__main__':

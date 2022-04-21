@@ -39,6 +39,19 @@ class Individual:
     def is_alive(self):
         return self.death_date is None
 
+    def get_all_descendants(self):
+        descendants = set()
+        queue = [d for d in self.child]
+        memo = set()
+        while queue:
+            p: Individual = queue.pop()
+            descendants.add(p)
+            memo.add(p)
+            for c in p.child:
+                if c not in memo:
+                    queue.insert(0, c)
+        return descendants
+
     def get_earliest_marriage_date(self):
         if len(self.family_list) == 0:
             return None

@@ -132,16 +132,7 @@ class ValidityChecker:
         spouse = individual.spouse
         if not spouse:
             return
-        descendants = set()
-        queue = [d for d in individual.child]
-        memo = set()
-        while queue:
-            p: Individual = queue.pop()
-            descendants.add(p)
-            memo.add(p)
-            for c in p.child:
-                if c not in memo:
-                    queue.insert(0, c)
+        descendants = individual.get_all_descendants()
         if spouse in descendants:
             self.set_invalid_individual(individual, 'WARNING: {name} is married to one of his/her descendants!')
             return

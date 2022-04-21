@@ -27,6 +27,35 @@ class GEDReaderTest(unittest.TestCase):
         reader_us08: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS08.ged')
         self.assertFalse(reader_us08.get_individual('I1').is_valid)
 
+    def test_us35(self):
+        # Unit Test for User Story 35
+        reader_us35: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS35.ged')
+        recent_birth = reader_us35.list_recent_birth()
+        self.assertEqual([i.name for i in recent_birth], ['Mingze /Xi/'])
+
+    def test_us36(self):
+        # Unit Test for User Story 36
+        reader_us36: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS36.ged')
+        recent_death = reader_us36.list_recent_death()
+        self.assertEqual([i.name for i in recent_death], ['Zhongxun /Xi/'])
+
+    def test_us37(self):
+        # Unit Test for User Story 37
+        reader_us37: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS37.ged')
+        recent_survivors = reader_us37.list_recent_survivors()
+        self.assertEqual(sorted([i.name for i in recent_survivors]), ['Anan /Xi/',
+                                                                      'Jinping /Xi/',
+                                                                      'Mingze /Xi/',
+                                                                      'Qiaoqiao /Xi/',
+                                                                      'Xin /Qi/',
+                                                                      'Yuanping /Xi/'])
+
+    def test_us41(self):
+        # Unit Test for User Story 41
+        reader_us41: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS41.ged')
+        i = reader_us41.get_individual('I1')
+        self.assertEqual(str(i.birthday), '1953-1-1')
+
 
 if __name__ == '__main__':
     unittest.main(exit=False, verbosity=2)
