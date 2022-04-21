@@ -67,6 +67,12 @@ class GEDReaderTest(unittest.TestCase):
         orphans = reader_us33.list_orphans()
         self.assertEqual([i.name for i in orphans], ['Mingze /Xi/'])
 
+    def test_us34(self):
+        # Unit Test for User Story 34
+        reader_us34: GEDReader = GEDReader('UnitTestGEDFile/UnitTestUS34.ged')
+        large_gap_couples = reader_us34.list_spouse_age_gap_large()
+        self.assertEqual([[i.name for i in p] for p in large_gap_couples], [['Jinping /Xi/', 'Liyuan /Peng/']])
+
 
 if __name__ == '__main__':
     unittest.main(exit=False, verbosity=2)
